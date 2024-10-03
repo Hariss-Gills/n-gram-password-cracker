@@ -1,0 +1,4 @@
+# Ignore python dev tools
+
+.mypy_cache/
+.ruff_cache/
