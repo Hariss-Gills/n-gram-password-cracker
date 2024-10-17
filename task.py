@@ -1,8 +1,10 @@
 from string import ascii_lowercase, digits
 from itertools import product
+from markov.generate_password import cracking_with_markov_chains
 import hashlib
 import json
 import time
+import pickle
 
 CHARS = ascii_lowercase + digits
 
@@ -137,7 +139,7 @@ if __name__ == "__main__":
 
     start_time = time.time()
     task2_values = dictionary_cracking(
-        data["task2_hashed_vals"], "PasswordDictionary.txt"
+        data["task2_hashed_vals"], "password-data/PasswordDictionary.txt"
     )
     elapsed_time = time.time() - start_time
     print(f"Elapsed time: {elapsed_time} seconds")
@@ -151,8 +153,18 @@ if __name__ == "__main__":
 
     start_time = time.time()
     task3_values = dictionary_cracking_with_salt(
-        data["task3_hashed_vals"], "PasswordDictionary.txt"
+        data["task3_hashed_vals"], "password-data/PasswordDictionary.txt"
     )
     elapsed_time = time.time() - start_time
     print(f"Elapsed time: {elapsed_time} seconds")
     print(task3_values)
+
+    max_ngrams = 3
+    with open(f"password-data/upto-{max_ngrams}-gram.pickle", "rb") as file:
+        markov_chain = pickle.load(file)
+
+    start_time = time.time()
+    task4_values = cracking_with_markov_chains(data["task4_hashed_vals"], markov_chain)
+    elapsed_time = time.time() - start_time
+    print(f"Elapsed time: {elapsed_time} seconds")
+    print(task4_values)
