@@ -1,6 +1,7 @@
 import pickle
+import random
 from collections import defaultdict
-from typing import DefaultDict, TypeAlias
+from typing import DefaultDict, List, TypeAlias
 
 MarkovChain: TypeAlias = DefaultDict[str, DefaultDict[str, float]]
 
@@ -11,18 +12,18 @@ RIGHT_DELIM = "€"
 
 def find_ngram(password: str, ngram_length: int) -> list[tuple[str, str]]:
     """
-    Generate n-grams from a password string.
+     Generate n-grams from a password string.
 
-    An n-gram consists of a prefix of `ngram_length` characters and the
-    character that follows it. For prefixes shorter than `ngram_length`,
-    the prefix is left-padded with the `^` character.
+     An n-gram consists of a prefix of `ngram_length` characters and the
+     character that follows it. For prefixes shorter than `ngram_length`,
+     the prefix is left-padded with the £ character.
 
-    Args:
-        password (str): The string from which to generate n-grams.
-        ngram_length (int): The length of the n-gram to generate.
+     Args:
+         password (str): The string from which to generate n-grams.
+         ngram_length (int): The length of the n-gram to generate.
 
     Returns:
-        list[tuple[str, str]]: A list of (prefix, character) tuples representing the n-grams.
+         list[tuple[str, str]]: A list of (prefix, character) tuples representing the n-grams.
     """
     ngrams = []
     for index in range(len(password)):
@@ -72,25 +73,54 @@ def calculate_probabilities(markov_chain: MarkovChain) -> None:
             markov_chain[prev][next] = count / total_count
 
 
-def chain_file(file_path: str) -> MarkovChain:
+def split_into_folds(file_path: str, num_folds: int = 5):
     """
-    Load a file and build a Markov chain from its contents.
+    Splits the data from a file into randomized folds, ensuring randomness in the data distribution,
 
-    Each line of the file is treated as a string, and n-grams are generated
+    Args:
+        file_path (str): Path to the file containing the data, with one entry per line.
+        num_folds (int, optional): Number of folds to split the data into. Defaults to 5.
+
+    Returns:
+        list[list[str]]: A list containing folds, where each fold is a list of strings (lines from the file).
+
+    """
+    with open(file_path, "r") as file:
+        lines = [line.strip() for line in file.readlines()]
+
+    random.shuffle(lines)
+
+    folds = []
+    fold_size = len(lines) // num_folds
+    remainder = len(lines) % num_folds
+
+    start = 0
+    for i in range(num_folds):
+        end = start + fold_size + (1 if i < remainder else 0)
+        folds.append(lines[start:end])
+        start = end
+
+    return folds
+
+
+def chain_folds(folds: list[list[str]], max_ngrams: int = 3) -> MarkovChain:
+    """
+    Builds a Markov chain model from a list of folds, where each fold contains password sequences.
+
+    Each line of the fold is treated as a string, and n-grams are generated
     for it. The function builds a Markov chain that captures the transition
     probabilities between characters.
 
     Args:
-        file_path (str): The path to the file containing strings to process.
+        folds (list[list[str]]): A list of folds, where each fold is a list of strings representing passwords.
+        max_ngrams (int, optional): The maximum length of n-grams to consider for the Markov chain. Defaults to 3.
 
     Returns:
         MarkovChain: The Markov chain built from the file contents.
     """
     markov_chain: MarkovChain = defaultdict(defaultdict(float).copy)
-    with open(file_path, "r") as file:
-        # Use € as right delimeter
-        for password in file:
-            password = password.strip()
+    for fold in folds:
+        for password in fold:
             password += RIGHT_DELIM
             find_token_occurence(password, max_ngrams, markov_chain)
 
@@ -115,7 +145,11 @@ def pickle_markov_chain(file_path: str, markov_chain: MarkovChain) -> None:
 
 if __name__ == "__main__":
     max_ngrams = 3
-    markov_chain = chain_file("password-data/PasswordDictionary.txt")
-    print(markov_chain)
-    # pickling idea came from here https://github.com/brannondorsey/markov-passwords/tree/master
-    pickle_markov_chain(f"password-data/upto-{max_ngrams}-gram.pickle", markov_chain)
+    folds = split_into_folds("password-data/rockyou.txt", 5)
+    for index, fold in enumerate(folds):
+        markov_chain = chain_folds(folds[:index] + folds[index + 1 :])
+        print(markov_chain)
+        # pickling idea came from here https://github.com/brannondorsey/markov-passwords/tree/master
+        pickle_markov_chain(
+            f"password-data/{index + 1}-upto-{max_ngrams}-gram.pickle", markov_chain
+        )

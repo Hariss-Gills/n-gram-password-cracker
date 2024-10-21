@@ -18,13 +18,13 @@ def brute_force_cracking(hashes: list[str]) -> list[str]:
     """
 
     plaintext_pass = [None] * len(hashes)
-    shortlex_order = []
     length = 0
 
     while None in plaintext_pass:
-        shortlex_order += generate_lex_order_at_len(CHARS, length)
-        for string in shortlex_order:
-            print(string)
+        # Use Generator in loop to get performance benefit
+        # instead of g destructing it in a list
+        # This still represents the strings in shortlex_order
+        for string in generate_lex_order_at_len(CHARS, length):
             hashed_val = hashlib.sha512(string.encode()).hexdigest()
             if hashed_val in hashes:
                 index_of_hashed_val = hashes.index(hashed_val)

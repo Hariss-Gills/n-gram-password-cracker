@@ -16,6 +16,9 @@ def hash_file(file_path: str, salt: str = "") -> dict[str, str]:
     with open(file_path) as file:
         for password in file:
             clean_pass = password.strip()
+            # Do not hash password if already hashed
+            if clean_pass in hashed_file.values():
+                continue
             hashed_val = hashlib.sha512(f"{clean_pass}{salt}".encode()).hexdigest()
             hashed_file[hashed_val] = clean_pass
 

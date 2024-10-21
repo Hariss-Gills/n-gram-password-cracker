@@ -6,6 +6,7 @@ import time
 import hashlib
 
 MAX_PASSWORD_LENGTH = 100
+MAX_UNIQUE_PASSWORDS = 1000000
 
 
 def generate_password(markov_chain: MarkovChain, ngram_length: int) -> str:
@@ -57,7 +58,7 @@ def gen_character(markov_chain: MarkovChain, ngram: str) -> str:
 
 
 def cracking_with_markov_chains(
-    hashes: list[tuple[str, str]], markov_chain: MarkovChain
+    hashes: list[str], markov_chain: MarkovChain
 ) -> list[str]:
     """
     Attempt to crack password hashes using a Markov chain-based password generator.
@@ -67,7 +68,7 @@ def cracking_with_markov_chains(
     a list of provided hash values and returns the cracked plaintext passwords.
 
     Args:
-        hashes (list[tuple[str, str]]): A list of tuples where each tuple contains a password hash and corresponding plaintext.
+        hashes (list[str]): A list of hashed values to be cracked.
         markov_chain (MarkovChain): A MarkovChain object used to generate candidate passwords.
 
     Returns:
@@ -76,20 +77,19 @@ def cracking_with_markov_chains(
     max_ngrams = 3
     plaintext_pass = [None] * len(hashes)
     generated_passwords = set()
-    while None in plaintext_pass:
+    while len(generated_passwords) <= MAX_UNIQUE_PASSWORDS:
         password = generate_password(markov_chain, max_ngrams)
         if password in generated_passwords:
             continue
         generated_passwords.add(password)
         hashed_val = hashlib.sha512(password.encode()).hexdigest()
-        print(f"pass {password} val {hashed_val}")
-        print(len(generated_passwords))
-        print(plaintext_pass)
-
+        print(
+            f"Number of Unique passwords generated: {len(generated_passwords):06d}",
+            end="\r",
+        )
         if hashed_val in hashes:
             index_of_hashed_val = hashes.index(hashed_val)
             plaintext_pass[index_of_hashed_val] = password
-    print(len(generated_passwords))
     return plaintext_pass
 
 

@@ -39,7 +39,7 @@ def dictionary_cracking_with_salt(
     plaintext_pass = [None] * len(hashes)
     for index, hash in enumerate(hashes):
         hashed_file = hash_file(dictionary, hash[1])
-        if hashes[index][0] in hashed_file:
+        if hash[0] in hashed_file:
             plaintext_pass[index] = hashed_file[hash[0]]
 
     return plaintext_pass
