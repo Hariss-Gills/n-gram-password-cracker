@@ -5,30 +5,24 @@ from dictionary.crack_dictionary import (
     dictionary_cracking,
     dictionary_cracking_with_salt,
 )
+import matplotlib.pyplot as plot
+import seaborn
+import numpy
 import json
 import time
 import pickle
 import hashlib
-import argparse
 
 
-if __name__ == "__main__":
-    # parser = argparse.ArgumentParser(description="CS4028 - Assesment")
-    # parser.add_argument("task", help="Task you would like to run",
-    #    type=int,
-    #    choices=[1,2,3,4],
-    #    nargs='+')
-    # args = parser.parse_args()
-    # print(args.task)
-    with open("hashes.json") as json_file:
-        data = json.load(json_file)
-
+def task_1():
     start_time = time.perf_counter()
     task1_values = brute_force_cracking(data["task1_hashed_vals"])
     elapsed_time = time.perf_counter() - start_time
     print(f"Elapsed time: {elapsed_time} seconds")
     print(task1_values)
 
+
+def task_2():
     start_time = time.perf_counter()
     task2_values = dictionary_cracking(
         data["task2_hashed_vals"], "password-data/PasswordDictionary.txt"
@@ -37,6 +31,8 @@ if __name__ == "__main__":
     print(f"Elapsed time: {elapsed_time} seconds")
     print(task2_values)
 
+
+def task_3():
     # Python annotingly has no built in way to store tuples from json
     # https://stackoverflow.com/questions/15721363/preserve-python-tuples-with-json
     task3_hashed_vals = data["task3_hashed_vals"]
@@ -51,52 +47,124 @@ if __name__ == "__main__":
     print(f"Elapsed time: {elapsed_time} seconds")
     print(task3_values)
 
-    # Train for task 4
-    max_ngrams = 3
-    num_folds = 5
-    dictionary = "rockyou.txt"
-    folds = split_into_folds(f"password-data/{dictionary}", num_folds)
-    for index, fold in enumerate(folds):
+
+def task_4_train(folds, max_ngrams):
+    for index in range(len(folds)):
         markov_chain = chain_folds(folds[:index] + folds[index + 1 :], max_ngrams)
         # pickling idea came from here https://github.com/brannondorsey/markov-passwords/tree/master
         pickle_markov_chain(
             f"password-data/{dictionary}-{index + 1}-fold-upto-{max_ngrams}-gram.pickle",
             markov_chain,
         )
+    return folds
 
-    # Attempt to crack
-    total_passwords = 0
-    total_found = 0
-    total_time = 0
+
+def task_4_crack(folds, max_ngrams):
+    success_rates = []
+    elapsed_times = []
     for index, fold in enumerate(folds):
         with open(
             f"password-data/{dictionary}-{index + 1}-fold-upto-{max_ngrams}-gram.pickle",
             "rb",
         ) as file:
             markov_chain = pickle.load(file)
-        hashed_vals = []
-        for password in fold:
-            hashed_val = hashlib.sha512(password.encode()).hexdigest()
-            hashed_vals.append(hashed_val)
+        hashed_vals = [
+            hashlib.sha512(password.encode()).hexdigest() for password in fold
+        ]
         start_time = time.perf_counter()
         cracked_passwords = cracking_with_markov_chains(hashed_vals, markov_chain)
         elapsed_time = time.perf_counter() - start_time
+        found_passwords = [
+            password for password in cracked_passwords if password is not None
+        ]
+        success_rate = (len(found_passwords) / len(fold)) * 100
+        success_rates.append(success_rate)
+        elapsed_times.append(elapsed_time)
         print(f"Elapsed time: {elapsed_time} seconds")
         print(f"Fold {index + 1} - Elapsed time: {elapsed_time:.2f} seconds")
-        print(
-            f"Passwords cracked: {len(
-            [password for password in cracked_passwords if password is not None]
-        )}/{len(fold)}"
-        )
-        total_time += elapsed_time
-        total_found += len(
-            [password for password in cracked_passwords if password is not None]
-        )
-        total_passwords += len(fold)
+        print(f"Passwords cracked: {len(found_passwords)}/{len(fold)}")
 
-    # Calculate final metrics
-    average_time = total_time / 5
-    success_rate = (total_found / total_passwords) * 100
+    print(f"Average time per fold: {sum(elapsed_times) / len(folds):.2f} seconds")
+    print(f"Overall success rate: {sum(success_rates) / len(success_rates):.2f}%")
+    return success_rates, elapsed_times
 
-    print(f"Average time per fold: {average_time:.2f} seconds")
-    print(f"Overall success rate: {success_rate:.2f}%")
+
+def task_4_plot(success_rates, elapsed_times):
+
+    folds = [1, 2, 3, 4, 5]
+    plot.figure(figsize=(8, 6))
+    seaborn.barplot(x=folds, y=success_rates)
+    plot.title("Success Rate per Fold")
+    plot.xlabel("Fold Number")
+    plot.ylabel("Success Rate (%)")
+    plot.savefig("report/images/success-rate-per-fold.png")
+    plot.close()
+
+    plot.figure(figsize=(8, 6))
+    seaborn.lineplot(x=folds, y=elapsed_times, marker="o", color="green")
+    plot.title("Elapsed Time per Fold")
+    plot.xlabel("Fold Number")
+    plot.ylabel("Time (seconds)")
+    plot.savefig("report/images/elapsed-time-per-fold.png")
+    plot.close()
+
+    mean_success_rate = numpy.mean(success_rates)
+    std_success_rate = numpy.std(success_rates)
+
+    plot.figure(figsize=(8, 6))
+    seaborn.barplot(x=folds, y=success_rates)
+
+    # Get the positions of the bars as the x-values
+    # This is required for centering
+    x_pos = numpy.arange(len(folds))
+    plot.errorbar(
+        x=x_pos,
+        y=success_rates,
+        yerr=[std_success_rate] * len(success_rates),
+        fmt="o",
+        color="black",
+        capsize=5,
+    )
+
+    # Plot the mean line
+    plot.axhline(
+        mean_success_rate,
+        color="red",
+        linestyle="--",
+        label=f"Mean: {mean_success_rate:.2f}%",
+    )
+
+    plot.text(
+        x=len(success_rates) - 0.5,
+        y=mean_success_rate + 1,
+        s=f"Mean: {mean_success_rate:.2f}%",
+        color="red",
+        ha="center",
+    )
+
+    plot.title("Success Rate per Fold with Mean and Standard Deviation")
+    plot.xlabel("Fold Number")
+    plot.ylabel("Success Rate (%)")
+
+    plot.legend()
+
+    plot.savefig("report/images/success-rate-with-mean-and-std.png")
+    plot.close()
+
+
+if __name__ == "__main__":
+
+    with open("hashes.json") as json_file:
+        data = json.load(json_file)
+
+    task_1()
+    task_2()
+    task_3()
+
+    num_folds = 5
+    max_ngrams = 3
+    dictionary = "rockyou.txt"
+    folds = split_into_folds(f"password-data/{dictionary}", num_folds)
+    task_4_train(folds, max_ngrams)
+    success_rates, elapsed_times = task_4_crack(folds, max_ngrams)
+    task_4_plot(success_rates, elapsed_times)
