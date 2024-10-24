@@ -70,8 +70,6 @@ def cracking_with_markov_chains(
     Args:
         hashes (list[str]): A list of hashed values to be cracked.
         markov_chain (MarkovChain): A MarkovChain object used to generate candidate passwords.
-        max_ngrams (int): The maximum length of n-grams to generate.
-
 
     Returns:
         list[str]: A list of cracked plaintext passwords, corresponding to the input hashes.
