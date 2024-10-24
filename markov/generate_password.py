@@ -9,29 +9,6 @@ MAX_PASSWORD_LENGTH = 100
 MAX_UNIQUE_PASSWORDS = 1000000
 
 
-def generate_password(markov_chain: MarkovChain, ngram_length: int) -> str:
-    """
-    Generate a password based on the provided Markov chain model.
-
-    Generates a password by starting with a delimiter and
-    iteratively appending characters predicted by the Markov chain model
-    until the right delimiter is reached or the maximum password length is
-    exceeded.
-
-    Args:
-        markov_chain (MarkovChain): A MarkovChain object that represents the model.
-        ngram_length (int): The length of the n-grams to consider when generating the password.
-
-    Returns:
-        str: The generated password, without the delimiters.
-    """
-    password = LEFT_DELIM * ngram_length
-    for index in range(MAX_PASSWORD_LENGTH):
-        password += gen_character(markov_chain, password[index : index + ngram_length])
-        if password[-1] == RIGHT_DELIM:
-            return password[:-1].replace(LEFT_DELIM, "")
-
-
 def gen_character(markov_chain: MarkovChain, ngram: str) -> str:
     """
     Generate the next character based on the given n-gram and Markov chain.
@@ -57,8 +34,31 @@ def gen_character(markov_chain: MarkovChain, ngram: str) -> str:
         return gen_character(markov_chain, ngram[0:-1])
 
 
+def generate_password(markov_chain: MarkovChain, ngram_length: int) -> str:
+    """
+    Generate a password based on the provided Markov chain model.
+
+    Generates a password by starting with a delimiter and
+    iteratively appending characters predicted by the Markov chain model
+    until the right delimiter is reached or the maximum password length is
+    exceeded.
+
+    Args:
+        markov_chain (MarkovChain): A MarkovChain object that represents the model.
+        ngram_length (int): The length of the n-grams to consider when generating the password.
+
+    Returns:
+        str: The generated password, without the delimiters.
+    """
+    password = LEFT_DELIM * ngram_length
+    for index in range(MAX_PASSWORD_LENGTH):
+        password += gen_character(markov_chain, password[index : index + ngram_length])
+        if password[-1] == RIGHT_DELIM:
+            return password[:-1].replace(LEFT_DELIM, "")
+
+
 def cracking_with_markov_chains(
-    hashes: list[str], markov_chain: MarkovChain
+    hashes: list[str], markov_chain: MarkovChain, max_ngrams: int = 3
 ) -> list[str]:
     """
     Attempt to crack password hashes using a Markov chain-based password generator.
@@ -74,7 +74,6 @@ def cracking_with_markov_chains(
     Returns:
         list[str]: A list of cracked plaintext passwords, corresponding to the input hashes.
     """
-    max_ngrams = 3
     plaintext_pass = [None] * len(hashes)
     generated_passwords = set()
     while len(generated_passwords) <= MAX_UNIQUE_PASSWORDS:

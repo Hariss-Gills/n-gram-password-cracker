@@ -72,7 +72,9 @@ def task_4_crack(folds, max_ngrams):
             hashlib.sha512(password.encode()).hexdigest() for password in fold
         ]
         start_time = time.perf_counter()
-        cracked_passwords = cracking_with_markov_chains(hashed_vals, markov_chain)
+        cracked_passwords = cracking_with_markov_chains(
+            hashed_vals, markov_chain, max_ngrams
+        )
         elapsed_time = time.perf_counter() - start_time
         found_passwords = [
             password for password in cracked_passwords if password is not None
@@ -92,20 +94,48 @@ def task_4_crack(folds, max_ngrams):
 def task_4_plot(success_rates, elapsed_times):
 
     folds = [1, 2, 3, 4, 5]
-    plot.figure(figsize=(8, 6))
-    seaborn.barplot(x=folds, y=success_rates)
-    plot.title("Success Rate per Fold")
-    plot.xlabel("Fold Number")
-    plot.ylabel("Success Rate (%)")
-    plot.savefig("report/images/success-rate-per-fold.png")
-    plot.close()
+    mean_elapsed_times = numpy.mean(elapsed_times)
+    std_elaspsed_times = numpy.std(elapsed_times)
 
     plot.figure(figsize=(8, 6))
-    seaborn.lineplot(x=folds, y=elapsed_times, marker="o", color="green")
-    plot.title("Elapsed Time per Fold")
+    seaborn.barplot(x=folds, y=elapsed_times)
+
+    # Get the positions of the bars as the x-values
+    # This is required for centering
+    x_pos = numpy.arange(len(folds))
+
+    plot.errorbar(
+        x=x_pos,
+        y=elapsed_times,
+        yerr=[std_elaspsed_times] * len(elapsed_times),
+        fmt="o",
+        color="black",
+        capsize=5,
+    )
+
+    # Plot the mean line
+    plot.axhline(
+        mean_elapsed_times,
+        color="red",
+        linestyle="--",
+        label=f"Mean: {mean_elapsed_times:.2f}%",
+    )
+
+    plot.text(
+        x=len(elapsed_times) - 0.5,
+        y=mean_elapsed_times + 1,
+        s=f"Mean: {mean_elapsed_times:.2f}%",
+        color="red",
+        ha="center",
+    )
+
+    plot.title("Elapsed Time per Fold with Mean and Standard Deviation")
     plot.xlabel("Fold Number")
-    plot.ylabel("Time (seconds)")
-    plot.savefig("report/images/elapsed-time-per-fold.png")
+    plot.ylabel("Elapsed Time (seconds)")
+
+    plot.legend()
+
+    plot.savefig("report/images/elapsed-times-with-mean-and-std.png")
     plot.close()
 
     mean_success_rate = numpy.mean(success_rates)
@@ -114,9 +144,6 @@ def task_4_plot(success_rates, elapsed_times):
     plot.figure(figsize=(8, 6))
     seaborn.barplot(x=folds, y=success_rates)
 
-    # Get the positions of the bars as the x-values
-    # This is required for centering
-    x_pos = numpy.arange(len(folds))
     plot.errorbar(
         x=x_pos,
         y=success_rates,
@@ -167,4 +194,4 @@ if __name__ == "__main__":
     folds = split_into_folds(f"password-data/{dictionary}", num_folds)
     task_4_train(folds, max_ngrams)
     success_rates, elapsed_times = task_4_crack(folds, max_ngrams)
-    # task_4_plot(success_rates, elapsed_times)
+    task_4_plot(success_rates, elapsed_times)
