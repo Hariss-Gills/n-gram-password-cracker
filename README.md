@@ -16,7 +16,7 @@ pip install -r requirements.txt
 
 ## Usage
 
-By default, all of the tasks are run except for plotting. You can comment out tasks within main.py to run specific tasks.
+By default, all of the tasks and imports related to plotting are commented out. You can comment out the distinct tasks within main.py to run specific tasks.
 
 ```bash
 python main.py

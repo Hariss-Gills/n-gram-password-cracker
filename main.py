@@ -5,9 +5,10 @@ from dictionary.crack_dictionary import (
     dictionary_cracking,
     dictionary_cracking_with_salt,
 )
-import matplotlib.pyplot as plot
-import seaborn
-import numpy
+
+# import matplotlib.pyplot as plot
+# import seaborn
+# import numpy
 import json
 import time
 import pickle
