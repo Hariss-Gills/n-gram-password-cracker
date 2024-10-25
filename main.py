@@ -194,4 +194,4 @@ if __name__ == "__main__":
     folds = split_into_folds(f"password-data/{dictionary}", num_folds)
     task_4_train(folds, max_ngrams)
     success_rates, elapsed_times = task_4_crack(folds, max_ngrams)
-    task_4_plot(success_rates, elapsed_times)
+    # task_4_plot(success_rates, elapsed_times)
