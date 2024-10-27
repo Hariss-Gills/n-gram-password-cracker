@@ -1,0 +1,60 @@
+\documentclass{report}
+\usepackage{graphicx} % Required for inserting images
+\usepackage[a4paper]{geometry}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor={black},
+    citecolor={black},
+    urlcolor={blue!80!black}
+}
+\setlength{\parskip}{\baselineskip}%
+\setlength{\parindent}{0pt}%
+\usepackage{listings}
+\usepackage{xcolor}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\graphicspath{ {images/} }
+\lstset{style=mystyle}
+\title{CS4028 CA}
+\author{Hariss Ali Gills}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\chapter{Tasks 1 - 3}
+\section{Brute-force Cracking}
+\input{chapters/task-1}
+\section{Dictionary Cracking}
+\input{chapters/task-2}
+\section{Dictionary Cracking with Salts}
+\input{chapters/task-3}
+\chapter{Task 4 - Cracking Using N-gram Markov Chains}
+\input{chapters/task-4}
+\appendix
+\chapter{Appendix}
+\input{chapters/appendix}
+\bibliographystyle{plain}
+\bibliography{ref}
+\end{document}
