@@ -185,9 +185,9 @@ if __name__ == "__main__":
     with open("hashes.json") as json_file:
         data = json.load(json_file)
 
-    task_1()
-    task_2()
-    task_3()
+    # task_1()
+    # task_2()
+    # task_3()
 
     num_folds = 5
     max_ngrams = 3
