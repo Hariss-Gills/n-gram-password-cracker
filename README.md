@@ -1,6 +1,6 @@
-# CS4048 CA - Cracking using N-gram Markov Chains
+# Password Cracking using N-gram Markov Chains
 
-This project implements a password-cracking algorithm based on Markov Chains. The goal is to generate password guesses that closely resemble real-world password patterns by analyzing a training set of known passwords. Using Markov Chains, the model learns the statistical likelihood of character sequences in passwords, enabling it to generate highly probable password candidates that can be used for password cracking.
+This project implements a password cracking algorithm based on Markov Chains. The goal is to generate password guesses that closely resemble real-world password patterns by analyzing a training set of known passwords. Using Markov Chains, the model learns the statistical likelihood of character sequences in passwords, enabling it to generate highly probable password candidates that can be used for password cracking.
 
 ## Installation
 
